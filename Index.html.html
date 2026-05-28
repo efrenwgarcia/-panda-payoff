@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debt Payoff Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ee;
+    --surface: #ffffff;
+    --surface2: #faf8f5;
+    --border: #e8e2d9;
+    --text: #1a1714;
+    --text-muted: #7a7068;
+    --accent: #c85a2a;
+    --accent-light: #f5e8e1;
+    --accent2: #2a6ec8;
+    --accent2-light: #e1ecf5;
+    --green: #2a8a4a;
+    --green-light: #e1f5e8;
+    --yellow: #c89a2a;
+    --yellow-light: #f5f0e1;
+    --red: #c82a2a;
+    --shadow: 0 2px 16px rgba(26,23,20,0.07);
+    --shadow-lg: 0 8px 40px rgba(26,23,20,0.12);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    gap: 16px;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #b04e24; }
+  .btn-outline {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+  }
+  .btn-outline:hover { border-color: var(--text-muted); color: var(--text); }
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border-color: #f0c0c0;
+  }
+  .btn-danger:hover { background: #fff0f0; }
+  .btn-lg {
+    padding: 13px 24px;
+    font-size: 15px;
+    border-radius: var(--radius);
+  }
+
+  /* LAYOUT */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+
+  /* SUMMARY STRIP */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    line-height: 1;
+    color: var(--text);
+  }
+  .stat-value.danger { color: var(--red); }
+  .stat-value.warn { color: var(--yellow); }
+  .stat-value.good { color: var(--green); }
+
+  /* CONTROLS */
+  .controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .sort-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .sort-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  select {
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    outline: none;
+  }
+  select:focus { border-color: var(--accent); }
+
+  /* STRATEGY BANNER */
+  .strategy-banner {
+    background: linear-gradient(135deg, #1a3a5c 0%, #2a6ec8 100%);
+    color: white;
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .strategy-icon { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
+  .strategy-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; margin-bottom: 4px; }
+  .strategy-desc { font-size: 13px; opacity: 0.85; line-height: 1.5; }
+  .strategy-card-name {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
+  /* CARD GRID */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+  }
+
+  .cc-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+    position: relative;
+  }
+  .cc-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .cc-card.paid-off {
+    opacity: 0.65;
+    border-color: var(--green);
+  }
+  .cc-card.priority-card {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-light), var(--shadow);
+  }
+
+  .card-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .card-title-row { flex: 1; min-width: 0; }
+  .card-nickname {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-last4 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .card-due {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .card-due.urgent { color: var(--red); font-weight: 600; }
+  .priority-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .paid-badge {
+    background: var(--green);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+
+  .card-body { padding: 16px 20px; }
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 13px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .card-row:last-child { border-bottom: none; }
+  .card-row-label { color: var(--text-muted); }
+  .card-row-value { font-weight: 500; }
+  .card-row-value.highlight { color: var(--accent); font-weight: 600; }
+
+  /* PROGRESS BAR */
+  .progress-section { padding: 0 20px 16px; }
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .progress-track {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.5s ease;
+  }
+  .progress-fill.low { background: var(--green); }
+  .progress-fill.medium { background: var(--yellow); }
+  .progress-fill.high { background: var(--accent); }
+  .progress-fill.maxed { background: var(--red); }
+
+  .card-notes {
+    margin: 0 20px 14px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    border: 1px solid var(--border);
+  }
+
+  .card-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: var(--surface2);
+  }
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .btn-icon {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    grid-column: 1 / -1;
+  }
+  .empty-icon { font-size: 60px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: var(--text-muted);
+  }
+  .empty-sub { font-size: 14px; color: var(--text-muted); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,23,20,0.55);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    backdrop-filter: blur(3px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.22s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .modal-header {
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 1.3rem; }
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--text-muted);
+    line-height: 1;
+    padding: 2px;
+    border-radius: 6px;
+  }
+  .close-btn:hover { background: var(--surface2); color: var(--text); }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    background: var(--surface2);
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+
+  /* FORM */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  input, textarea {
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  input::placeholder { color: #ccc; }
+  textarea { resize: vertical; min-height: 70px; }
+  .hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text);
+    color: white;
+    padding: 12px 22px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 500;
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-lg);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .header-inner { flex-wrap: wrap; height: auto; padding: 12px 0; }
+    .logo { font-size: 1.2rem; }
+    .header-actions .btn span { display: none; }
+    main { padding: 20px 14px 60px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .controls-bar { flex-direction: column; align-items: flex-start; }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">💳</div>
+      Debt Payoff
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="exportCSV()"><span>⬇</span> <span>Export CSV</span></button>
+      <button class="btn btn-danger" onclick="confirmClear()"><span>🗑</span> <span>Clear All</span></button>
+      <button class="btn btn-primary btn-lg" onclick="openModal()">+ Add Card</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- SUMMARY -->
+  <div class="summary-grid" id="summaryGrid">
+    <div class="stat-card">
+      <div class="stat-label">Total Debt</div>
+      <div class="stat-value danger" id="statDebt">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Credit Limit</div>
+      <div class="stat-value" id="statLimit">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Available Credit</div>
+      <div class="stat-value good" id="statAvail">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Overall Utilization</div>
+      <div class="stat-value" id="statUtil">0%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Cards Active</div>
+      <div class="stat-value" id="statCards">0</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-bar">
+    <div class="sort-group">
+      <span class="sort-label">Sort by:</span>
+      <select id="sortSelect" onchange="renderCards()">
+        <option value="apr">Highest APR (Avalanche)</option>
+        <option value="balance-low">Lowest Balance (Snowball)</option>
+        <option value="balance-high">Highest Balance</option>
+        <option value="due">Soonest Due Date</option>
+      </select>
+    </div>
+    <div class="sort-group">
+      <span class="sort-label">Strategy:</span>
+      <select id="strategySelect" onchange="renderCards()">
+        <option value="avalanche">Avalanche (Highest APR First)</option>
+        <option value="snowball">Snowball (Lowest Balance First)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- STRATEGY BANNER -->
+  <div class="strategy-banner" id="strategyBanner" style="display:none">
+    <div class="strategy-icon" id="strategyIcon">🏔️</div>
+    <div>
+      <div class="strategy-title" id="strategyTitle">Avalanche Method</div>
+      <div class="strategy-desc" id="strategyDesc"></div>
+      <div class="strategy-card-name" id="strategyCardName"></div>
+    </div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="cards-grid" id="cardsGrid"></div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add Credit Card</div>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="f-nick">Card Nickname *</label>
+          <input id="f-nick" placeholder="e.g. Chase Sapphire, Target Card" maxlength="40">
+        </div>
+        <div class="form-group">
+          <label for="f-last4">Last 4 Digits Only</label>
+          <input id="f-last4" placeholder="1234" maxlength="4" pattern="\d{4}">
+          <span class="hint">Never enter full card number</span>
+        </div>
+        <div class="form-group">
+          <label for="f-due">Due Date</label>
+          <input id="f-due" type="date">
+        </div>
+        <div class="form-group">
+          <label for="f-balance">Current Balance ($) *</label>
+          <input id="f-balance" type="number" placeholder="2500.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="f-limit">Credit Limit ($)</label>
+          <input id="f-limit" type="number" placeholder="5000.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="f-apr">Interest Rate APR (%)</label>
+          <input id="f-apr" type="number" placeholder="21.99" min="0" max="100" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="f-min">Minimum Payment ($)</label>
+          <input id="f-min" type="number" placeholder="35.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="f-extra">Extra Payment ($)</label>
+          <input id="f-extra" type="number" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group full">
+          <label for="f-notes">Notes</label>
+          <textarea id="f-notes" placeholder="Any notes about this card..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────
+const STORAGE_KEY = 'debt_tracker_v1';
+let cards = [];
+let editingId = null;
+
+function load() {
+  try { cards = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { cards = []; }
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+}
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+function openModal(id) {
+  editingId = id || null;
+  document.getElementById('modalTitle').textContent = id ? 'Edit Card' : 'Add Credit Card';
+  const fields = ['nick','last4','due','balance','limit','apr','min','extra','notes'];
+  fields.forEach(f => {
+    const el = document.getElementById('f-' + f);
+    if (el) el.value = '';
+  });
+  if (id) {
+    const c = cards.find(x => x.id === id);
+    if (c) {
+      document.getElementById('f-nick').value = c.nick || '';
+      document.getElementById('f-last4').value = c.last4 || '';
+      document.getElementById('f-due').value = c.due || '';
+      document.getElementById('f-balance').value = c.balance || '';
+      document.getElementById('f-limit').value = c.limit || '';
+      document.getElementById('f-apr').value = c.apr || '';
+      document.getElementById('f-min').value = c.min || '';
+      document.getElementById('f-extra').value = c.extra || '';
+      document.getElementById('f-notes').value = c.notes || '';
+    }
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('f-nick').focus(), 100);
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  editingId = null;
+}
+function closeModalOnBg(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function saveCard() {
+  const nick = document.getElementById('f-nick').value.trim();
+  const balance = parseFloat(document.getElementById('f-balance').value);
+  if (!nick) { showToast('Please enter a card nickname.'); return; }
+  if (isNaN(balance) || balance < 0) { showToast('Please enter a valid balance.'); return; }
+  const last4 = document.getElementById('f-last4').value.trim().replace(/\D/g,'').slice(0,4);
+
+  const card = {
+    id: editingId || uid(),
+    nick,
+    last4,
+    due: document.getElementById('f-due').value,
+    balance,
+    limit: parseFloat(document.getElementById('f-limit').value) || 0,
+    apr: parseFloat(document.getElementById('f-apr').value) || 0,
+    min: parseFloat(document.getElementById('f-min').value) || 0,
+    extra: parseFloat(document.getElementById('f-extra').value) || 0,
+    notes: document.getElementById('f-notes').value.trim(),
+    paidOff: false,
+    createdAt: editingId ? (cards.find(x=>x.id===editingId)||{}).createdAt : Date.now()
+  };
+
+  if (editingId) {
+    card.paidOff = (cards.find(x=>x.id===editingId)||{}).paidOff || false;
+    cards = cards.map(c => c.id === editingId ? card : c);
+    showToast('Card updated ✓');
+  } else {
+    cards.push(card);
+    showToast('Card added ✓');
+  }
+  save();
+  closeModal();
+  renderAll();
+}
+
+function deleteCard(id) {
+  if (!confirm('Remove this card?')) return;
+  cards = cards.filter(c => c.id !== id);
+  save();
+  renderAll();
+  showToast('Card removed');
+}
+
+function togglePaidOff(id) {
+  cards = cards.map(c => c.id === id ? {...c, paidOff: !c.paidOff} : c);
+  save();
+  renderAll();
+}
+
+// ── SORT / STRATEGY ───────────────────────────────────────────────
+function getSorted() {
+  const sort = document.getElementById('sortSelect').value;
+  const active = cards.filter(c => !c.paidOff);
+  const paid = cards.filter(c => c.paidOff);
+  const sortFn = {
+    'apr': (a,b) => b.apr - a.apr,
+    'balance-low': (a,b) => a.balance - b.balance,
+    'balance-high': (a,b) => b.balance - a.balance,
+    'due': (a,b) => {
+      if (!a.due && !b.due) return 0;
+      if (!a.due) return 1;
+      if (!b.due) return -1;
+      return new Date(a.due) - new Date(b.due);
+    }
+  }[sort] || (() => 0);
+  return [...active.sort(sortFn), ...paid];
+}
+
+function getPriorityCard() {
+  const strategy = document.getElementById('strategySelect').value;
+  const active = cards.filter(c => !c.paidOff && c.balance > 0);
+  if (!active.length) return null;
+  if (strategy === 'avalanche') return active.sort((a,b) => b.apr - a.apr)[0];
+  return active.sort((a,b) => a.balance - b.balance)[0];
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function renderAll() {
+  renderSummary();
+  renderStrategy();
+  renderCards();
+}
+
+function renderSummary() {
+  const active = cards.filter(c => !c.paidOff);
+  const totalDebt = active.reduce((s,c) => s + c.balance, 0);
+  const totalLimit = active.reduce((s,c) => s + c.limit, 0);
+  const avail = totalLimit - totalDebt;
+  const util = totalLimit > 0 ? (totalDebt / totalLimit * 100) : 0;
+
+  document.getElementById('statDebt').textContent = fmt(totalDebt);
+  document.getElementById('statLimit').textContent = fmt(totalLimit);
+  document.getElementById('statAvail').textContent = fmt(Math.max(0, avail));
+  const utilEl = document.getElementById('statUtil');
+  utilEl.textContent = util.toFixed(1) + '%';
+  utilEl.className = 'stat-value ' + (util >= 90 ? 'danger' : util >= 60 ? 'warn' : 'good');
+  document.getElementById('statCards').textContent = active.length;
+}
+
+function renderStrategy() {
+  const strategy = document.getElementById('strategySelect').value;
+  const p = getPriorityCard();
+  const banner = document.getElementById('strategyBanner');
+  if (!p) { banner.style.display = 'none'; return; }
+  banner.style.display = 'flex';
+  if (strategy === 'avalanche') {
+    document.getElementById('strategyIcon').textContent = '🏔️';
+    document.getElementById('strategyTitle').textContent = 'Avalanche Method';
+    document.getElementById('strategyDesc').textContent = 'Pay minimums on all cards, then throw every extra dollar at the highest-APR card. Saves the most money in interest over time.';
+  } else {
+    document.getElementById('strategyIcon').textContent = '⛄';
+    document.getElementById('strategyTitle').textContent = 'Snowball Method';
+    document.getElementById('strategyDesc').textContent = 'Pay minimums on all cards, then attack the lowest balance first. Builds momentum and motivation with quick wins.';
+  }
+  document.getElementById('strategyCardName').textContent =
+    `Focus on: ${p.nick}${p.last4 ? ' •••• '+p.last4 : ''} — ${p.apr}% APR / $${p.balance.toFixed(2)} balance`;
+}
+
+function renderCards() {
+  renderStrategy();
+  const sorted = getSorted();
+  const priority = getPriorityCard();
+  const grid = document.getElementById('cardsGrid');
+
+  if (!sorted.length) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">💳</div>
+      <div class="empty-title">No cards yet</div>
+      <div class="empty-sub">Add your first credit card to get started tracking your payoff journey.</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = sorted.map(c => cardHTML(c, priority && priority.id === c.id)).join('');
+}
+
+function cardHTML(c, isPriority) {
+  const util = c.limit > 0 ? (c.balance / c.limit * 100) : 0;
+  const utilClass = util >= 90 ? 'maxed' : util >= 70 ? 'high' : util >= 30 ? 'medium' : 'low';
+
+  let dueLabel = '';
+  let dueClass = '';
+  if (c.due) {
+    const d = new Date(c.due + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const diff = Math.round((d - today) / 86400000);
+    dueLabel = diff < 0 ? `Overdue by ${Math.abs(diff)}d` : diff === 0 ? 'Due Today!' : `Due in ${diff}d (${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})})`;
+    dueClass = diff <= 3 ? 'urgent' : '';
+  }
+
+  const badgeHTML = c.paidOff
+    ? `<span class="paid-badge">✓ Paid Off</span>`
+    : isPriority ? `<span class="priority-badge">⚡ Focus Here</span>` : '';
+
+  const totalPayment = (c.min || 0) + (c.extra || 0);
+
+  return `<div class="cc-card ${c.paidOff ? 'paid-off' : ''} ${isPriority && !c.paidOff ? 'priority-card' : ''}">
+    <div class="card-header">
+      <div class="card-title-row">
+        <div class="card-nickname">
+          ${escHtml(c.nick)}
+          ${c.last4 ? `<span class="card-last4">•••• ${escHtml(c.last4)}</span>` : ''}
+        </div>
+        ${c.due ? `<div class="card-due ${dueClass}">${dueLabel}</div>` : ''}
+      </div>
+      ${badgeHTML}
+    </div>
+    <div class="card-body">
+      <div class="card-row">
+        <span class="card-row-label">Balance</span>
+        <span class="card-row-value highlight">${fmt(c.balance)}</span>
+      </div>
+      ${c.limit ? `<div class="card-row">
+        <span class="card-row-label">Credit Limit</span>
+        <span class="card-row-value">${fmt(c.limit)}</span>
+      </div>` : ''}
+      ${c.limit ? `<div class="card-row">
+        <span class="card-row-label">Utilization</span>
+        <span class="card-row-value" style="color:${utilClass==='maxed'?'var(--red)':utilClass==='high'?'var(--accent)':utilClass==='medium'?'var(--yellow)':'var(--green)'}">${util.toFixed(1)}%</span>
+      </div>` : ''}
+      ${c.apr ? `<div class="card-row">
+        <span class="card-row-label">APR</span>
+        <span class="card-row-value">${c.apr}%</span>
+      </div>` : ''}
+      <div class="card-row">
+        <span class="card-row-label">Min Payment</span>
+        <span class="card-row-value">${fmt(c.min)}</span>
+      </div>
+      ${c.extra ? `<div class="card-row">
+        <span class="card-row-label">Extra Payment</span>
+        <span class="card-row-value" style="color:var(--green)">+${fmt(c.extra)}</span>
+      </div>` : ''}
+      ${totalPayment > 0 ? `<div class="card-row">
+        <span class="card-row-label">Total Monthly</span>
+        <span class="card-row-value" style="font-weight:600">${fmt(totalPayment)}</span>
+      </div>` : ''}
+    </div>
+    ${c.limit ? `<div class="progress-section">
+      <div class="progress-labels">
+        <span>Balance</span>
+        <span>${util.toFixed(1)}% of ${fmt(c.limit)}</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill ${utilClass}" style="width:${Math.min(100,util)}%"></div>
+      </div>
+    </div>` : ''}
+    ${c.notes ? `<div class="card-notes">${escHtml(c.notes)}</div>` : ''}
+    <div class="card-footer">
+      <button class="btn btn-outline btn-sm" onclick="openModal('${c.id}')">✏️ Edit</button>
+      <button class="btn btn-outline btn-sm" onclick="togglePaidOff('${c.id}')">
+        ${c.paidOff ? '↩ Reopen' : '✓ Mark Paid Off'}
+      </button>
+      <button class="btn btn-danger btn-sm btn-icon" onclick="deleteCard('${c.id}')" title="Delete">🗑</button>
+    </div>
+  </div>`;
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function fmt(n) {
+  if (!n && n !== 0) return '$0.00';
+  return '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────
+function exportCSV() {
+  if (!cards.length) { showToast('No cards to export.'); return; }
+  const headers = ['Nickname','Last 4','Balance','Credit Limit','APR %','Min Payment','Extra Payment','Due Date','Utilization %','Status','Notes'];
+  const rows = cards.map(c => {
+    const util = c.limit > 0 ? (c.balance / c.limit * 100).toFixed(1) : '';
+    return [
+      c.nick, c.last4, c.balance, c.limit, c.apr, c.min, c.extra,
+      c.due || '', util, c.paidOff ? 'Paid Off' : 'Active',
+      (c.notes || '').replace(/"/g, '""')
+    ].map(v => `"${v}"`).join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'debt-payoff-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  showToast('CSV exported ✓');
+}
+
+// ── CLEAR ALL ─────────────────────────────────────────────────────
+function confirmClear() {
+  if (!cards.length) { showToast('Nothing to clear.'); return; }
+  if (!confirm('Delete ALL card data? This cannot be undone.')) return;
+  cards = [];
+  save();
+  renderAll();
+  showToast('All data cleared');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+load();
+renderAll();
+</script>
+</body>
+</html>
